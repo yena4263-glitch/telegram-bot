@@ -45,6 +45,7 @@ PRICES =
         "S1 Follow": 45,
         "Follow Tây": 33.63
     },
+}
 # ================= MENU =================
 menu = ReplyKeyboardMarkup(
     [
