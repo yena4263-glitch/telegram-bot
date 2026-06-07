@@ -404,14 +404,13 @@ async def handle(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 # ================= RUN =================
 def main():
-    app = Application.builder().token(TOKEN).drop_pending_updates(True).build()
+    app = Application.builder().token(TOKEN).build()
 
     app.add_handler(CommandHandler("start", start))
     app.add_handler(CallbackQueryHandler(button_handler))
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle))
 
     print("BOT RUNNING...")
-    app.run_polling()
-
-if __name__ == "__main__":
-    main()
+    
+    # Sử dụng drop_pending_updates=True trực tiếp trong hàm run_polling
+    app.run_polling(drop_pending_updates=True)
