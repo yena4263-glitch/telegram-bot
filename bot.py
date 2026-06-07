@@ -148,7 +148,7 @@ def main():
 
 if __name__ == "__main__":
     main()
-        "Follow clone": 26.2
+    "Follow clone": 26.2
     },
     "TikTok": {
         "Follow clone": 47.8,
