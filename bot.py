@@ -187,7 +187,7 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
             f"⚠️ XÁC NHẬN CHUYỂN KHOẢN\n"
             f"🧾 CODE: {code}\n"
             f"👤 USER: {dep['user']}\n"
-            f"💰 SỐ TIỀN: {dep['amount']} VNĐ"
+            f"💰 SỐ TIỀN: {dep['{amount:,.0f}']} VNĐ"
         )
 
 # ================= TEXT =================
