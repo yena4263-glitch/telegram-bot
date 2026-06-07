@@ -404,7 +404,7 @@ async def handle(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 # ================= RUN =================
 def main():
-    app = Application.builder().token(TOKEN).build()
+    app = Application.builder().token(TOKEN).drop_pending_updates(True).build()
 
     app.add_handler(CommandHandler("start", start))
     app.add_handler(CallbackQueryHandler(button_handler))
