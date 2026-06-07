@@ -269,23 +269,32 @@ async def handle(update: Update, context: ContextTypes.DEFAULT_TYPE):
         )
 
     # ================= QTY =================
-        elif uid in STATE and STATE[uid].get("step") == "qty":
-        qty = int(text)
-        # 1. Tính tiền dựa trên platform và service đã chọn trước đó
-        platform = STATE[uid]["platform"]
-        service = STATE[uid]["service"]
-        price = PRICES[platform][service]
-        total = price * qty
-        
-        # 2. Lưu total vào STATE để dùng cho bước cuối
-        STATE[uid]["qty"] = qty
-        STATE[uid]["total"] = total
-        STATE[uid]["step"] = "link"
-        
-        # 3. Thông báo số tiền cho khách trước khi yêu cầu gửi link
-        await update.message.reply_text(
-            f"💰 TỔNG TIỀN: {total:,.0f} VNĐ\n"
-            f"🔗 GỬI LINK CẦN TĂNG:"
+            elif uid in STATE and STATE[uid].get("step") == "qty":
+        try:
+            qty = int(text)
+            platform = STATE[uid].get("platform")
+            service = STATE[uid].get("service")
+            
+            # Lấy giá từ bảng giá
+            price = PRICES.get(platform, {}).get(service, 0)
+            
+            if price == 0:
+                await update.message.reply_text("❌ Lỗi: Không tìm thấy giá dịch vụ này!")
+                return
+                
+            total = price * qty
+            
+            # Lưu vào STATE
+            STATE[uid]["qty"] = qty
+            STATE[uid]["total"] = total
+            STATE[uid]["step"] = "link"
+            
+            await update.message.reply_text(
+                f"💰 TỔNG TIỀN: {total:,.0f} VNĐ\n"
+                f"🔗 GỬI LINK CẦN TĂNG:"
+            )
+        except Exception as e:
+            await update.message.reply_text(f"❌ Vui lòng nhập số lượng hợp lệ! (Lỗi: {e})")
         )
     # ================= LINK =================
     elif uid in STATE and STATE[uid].get("step") == "link":
