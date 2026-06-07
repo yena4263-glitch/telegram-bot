@@ -35,7 +35,7 @@ PRICES = {
     "Facebook": {
         "Follow clone": 28,
         "Follow sale": 26,7
-    }
+    },
     "TikTok": {
         "Follow clone": 47.8,
         "S4 Follow": 48.9,
@@ -44,9 +44,7 @@ PRICES = {
     "Instagram": {
         "S1 Follow": 45,
         "Follow Tây": 33.63
-    }
-}
-
+    },
 # ================= MENU =================
 menu = ReplyKeyboardMarkup(
     [
