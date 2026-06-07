@@ -367,21 +367,33 @@ async def handle(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     # ================= ORDERS =================
     elif text == "📊 Đơn hàng":
-
-        msg = "📊 ĐƠN HÀNG CỦA BẠN\n━━━━━━━━━━━━━━\n\n"
-        found = False
-
-        for o in data["orders"].values():
-            if o["user"] == uid:
-                found = True
-                msg += (
-                    f"🆔 {o['id']}\n"
-                    f"📱 {o['platform']}\n"
-                    f"⚡ {o['service']}\n"
-                    f"📌 {o['status']}\n"
-                    text=f"📦 ĐƠN HÀNG MỚI\n💰 TỔNG TIỀN: {int(STATE[uid].get('total', 0)):,.0f} VNĐ"
-                    f"━━━━━━━━━━━━━━\n"
-                )
+    # ================= KHỐI XỬ LÝ ĐƠN HÀNG (LINK) =================
+    elif uid in STATE and STATE[uid].get("step") == "link":
+        link = text
+        
+        # 1. LẤY DỮ LIỆU AN TOÀN (Dùng .get để không bao giờ bị KeyError)
+        # Lấy giá trị tiền, nếu không có thì mặc định là 0
+        total = STATE[uid].get("total", 0)
+        platform = STATE[uid].get("platform", "N/A")
+        service = STATE[uid].get("service", "N/A")
+        qty = STATE[uid].get("qty", 0)
+        
+        # 2. GỬI TIN CHO ADMIN (Chỉ gửi khi có đầy đủ dữ liệu)
+        await context.bot.send_message(
+            chat_id=ADMIN_ID,
+            text=(f"📦 ĐƠN HÀNG MỚI\n"
+                  f"📱 Nền tảng: {platform}\n"
+                  f"🛠 Dịch vụ: {service}\n"
+                  f"🔢 Số lượng: {qty}\n"
+                  f"🔗 Link: {link}\n"
+                  f"💰 TỔNG TIỀN: {int(total):,.0f} VNĐ")
+        )
+        
+        # 3. THÔNG BÁO CHO KHÁCH
+        await update.message.reply_text("✅ Đơn hàng của bạn đã được gửi cho Admin!")
+        
+        # 4. CHỈ XÓA DỮ LIỆU SAU KHI ĐÃ LÀM XONG MỌI VIỆC
+        STATE.pop(uid, None) 
 
         if not found:
             msg = "📊 CHƯA CÓ ĐƠN HÀNG"
