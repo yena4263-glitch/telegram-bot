@@ -101,7 +101,7 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
         service = query.data.split("|")[1]
 
-        STATE[uid]["service"] = service
+        STATE.setdefault(uid, {})["service"] = service
         STATE[uid]["step"] = "qty"
 
         await query.message.reply_text("🔢 NHẬP SỐ LƯỢNG:")
