@@ -268,23 +268,19 @@ async def handle(update: Update, context: ContextTypes.DEFAULT_TYPE):
             ])
         )
 
-    # ================= QTY =================
-            elif uid in STATE and STATE[uid].get("step") == "qty":
+    # =# ================= QTY =================
+    elif uid in STATE and STATE[uid].get("step") == "qty":
         try:
             qty = int(text)
             platform = STATE[uid].get("platform")
             service = STATE[uid].get("service")
             
-            # Lấy giá từ bảng giá
-            price = PRICES.get(platform, {}).get(service, 0)
-            
-            if price == 0:
-                await update.message.reply_text("❌ Lỗi: Không tìm thấy giá dịch vụ này!")
-                return
-                
+            # Kiểm tra giá trong biến PRICES
+            # Đảm bảo PRICES đã được khai báo ở đầu file
+            price = PRICES[platform][service]
             total = price * qty
             
-            # Lưu vào STATE
+            # Lưu dữ liệu vào STATE để dùng cho bước sau
             STATE[uid]["qty"] = qty
             STATE[uid]["total"] = total
             STATE[uid]["step"] = "link"
@@ -294,11 +290,15 @@ async def handle(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 f"🔗 GỬI LINK CẦN TĂNG:"
             )
         except Exception as e:
-            await update.message.reply_text(f"❌ Vui lòng nhập số lượng hợp lệ! (Lỗi: {e})")
-        )
-    # ================= LINK =================
-    elif uid in STATE and STATE[uid].get("step") == "link":
+            await update.message.reply_text(f"❌ Lỗi: {e}")
+            print(f"Lỗi tính tiền: {e}")
 
+# ================= LINK =================
+    elif uid in STATE and STATE[uid].get("step") == "link":
+        # Ở đây bạn dùng 'total' đã lưu từ bước QTY
+        total = STATE[uid].get("total")
+        link = text
+        # ... tiếp tục các lệnh tạo đơn ...
         platform = STATE[uid]["platform"]
         service = STATE[uid]["service"]
         qty = STATE[uid]["qty"]
