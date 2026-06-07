@@ -33,9 +33,9 @@ def init_user(data, uid):
 # ================= PRICE =================
 PRICES = {
     "Facebook": {
-        "Follow sale": 28,
-        "Follow clone": 26.2
-    },
+        "Follow clone": 28,
+        "Follow sale": 26,7
+    }
     "TikTok": {
         "Follow clone": 47.8,
         "S4 Follow": 48.9,
