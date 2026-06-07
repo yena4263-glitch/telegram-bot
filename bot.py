@@ -247,7 +247,7 @@ async def handle(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text(
             f"🧾 MÃ NẠP: {code}\n"
             f"💰 {amount:,.0f} VNĐ\n"
-            f"📌 NỘI DUNG: {code} + tên tài khoản",
+            f"📌 NỘI DUNG: {code} +{total:,.0f}",
             reply_markup=InlineKeyboardMarkup([
                 [InlineKeyboardButton("💸 ĐÃ CHUYỂN TIỀN", callback_data=f"paid_confirm|{code}")]
             ])
