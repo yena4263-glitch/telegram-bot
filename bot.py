@@ -31,10 +31,10 @@ def init_user(data, uid):
         data["users"][uid] = {"balance": 0}
 
 # ================= PRICE =================
-PRICES = 
+PRICES = {
     "Facebook": {
         "Follow clone": 28,
-        "Follow sale": 26,7
+        "Follow sale": 26.7
     },
     "TikTok": {
         "Follow clone": 47.8,
