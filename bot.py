@@ -366,7 +366,7 @@ async def handle(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text(f"💰 SỐ DƯ: {balance:,} VNĐ")
 
     # ================= ORDERS =================
-        elif uid in STATE and STATE[uid].get("step") == "link":
+        elif uid in STATE and\STATE[uid].get("step") == "link":
         link = text
         
         # 1. TRÍCH XUẤT DỮ LIỆU AN TOÀN (Lấy ra biến tạm TRƯỚC KHI xóa)
