@@ -66,7 +66,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     save(data)
 
     await update.message.reply_text(
-        "🚀 VIỆT ANH AUTO BOT XIN CHÀO \n━━━━━━━👋━━━━━━━",
+        "🚀 VIỆT ANH AUTO BOT XIN CHÀO \n━━━━━━━━━━━━━━",
         reply_markup=menu
     )
 
