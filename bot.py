@@ -269,13 +269,24 @@ async def handle(update: Update, context: ContextTypes.DEFAULT_TYPE):
         )
 
     # ================= QTY =================
-    elif uid in STATE and STATE[uid].get("step") == "qty":
-
-        STATE[uid]["qty"] = int(text)
+        elif uid in STATE and STATE[uid].get("step") == "qty":
+        qty = int(text)
+        # 1. Tính tiền dựa trên platform và service đã chọn trước đó
+        platform = STATE[uid]["platform"]
+        service = STATE[uid]["service"]
+        price = PRICES[platform][service]
+        total = price * qty
+        
+        # 2. Lưu total vào STATE để dùng cho bước cuối
+        STATE[uid]["qty"] = qty
+        STATE[uid]["total"] = total
         STATE[uid]["step"] = "link"
-
-        await update.message.reply_text("🔗 GỬI LINK CẦN TĂNG:")
-
+        
+        # 3. Thông báo số tiền cho khách trước khi yêu cầu gửi link
+        await update.message.reply_text(
+            f"💰 TỔNG TIỀN: {total:,.0f} VNĐ\n"
+            f"🔗 GỬI LINK CẦN TĂNG:"
+        )
     # ================= LINK =================
     elif uid in STATE and STATE[uid].get("step") == "link":
 
