@@ -247,7 +247,7 @@ async def handle(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
         await update.message.reply_text(
             f"🧾 MÃ NẠP: {code}\n"
-            f"💰 {amount} VNĐ\n"
+            f"💰 {amount:,.0f} VNĐ\n"
             f"📌 NỘI DUNG: {code} + {amount}",
             reply_markup=InlineKeyboardMarkup([
                 [InlineKeyboardButton("💸 ĐÃ CHUYỂN TIỀN", callback_data=f"paid_confirm|{code}")]
@@ -259,7 +259,7 @@ async def handle(update: Update, context: ContextTypes.DEFAULT_TYPE):
             f"💰 YÊU CẦU NẠP TIỀN\n"
             f"🧾 CODE: {code}\n"
             f"👤 USER: {uid}\n"
-            f"💰 SỐ TIỀN: {amount}",
+            f"💰 SỐ TIỀN: {amount:,.0f}",
             reply_markup=InlineKeyboardMarkup([
                 [
                     InlineKeyboardButton("✅ DUYỆT", callback_data=f"dep|ok|{code}"),
@@ -323,7 +323,7 @@ async def handle(update: Update, context: ContextTypes.DEFAULT_TYPE):
             f"⚡ {service}\n"
             f"🔢 {qty}\n"
             f"🔗 {link}\n"
-            f"💰 {total} VNĐ\n"
+            f"💰 {amount:,.0f} VNĐ\n"
             f"📌 CHỜ XỬ LÝ",
             reply_markup=InlineKeyboardMarkup([
                 [
