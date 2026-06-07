@@ -340,8 +340,11 @@ async def handle(update: Update, context: ContextTypes.DEFAULT_TYPE):
         )
 
     # ================= ACCOUNT =================
+        # ================= ACCOUNT =================
     elif text == "👤 Tài khoản":
-        await update.message.reply_text(f"💰 SỐ DƯ: {data['users'][uid]['balance']} VNĐ")
+        # Ép kiểu về số nguyên và dùng định dạng có dấu phẩy cho dễ đọc
+        balance = int(data['users'][uid]['balance'])
+        await update.message.reply_text(f"💰 SỐ DƯ: {balance:,} VNĐ")
 
     # ================= ORDERS =================
     elif text == "📊 Đơn hàng":
