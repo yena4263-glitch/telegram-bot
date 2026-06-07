@@ -366,38 +366,38 @@ async def handle(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text(f"💰 SỐ DƯ: {balance:,} VNĐ")
 
     # ================= ORDERS =================
-    elif text == "📊 Đơn hàng":
-    # ================= KHỐI XỬ LÝ ĐƠN HÀNG (LINK) =================
-    elif uid in STATE and STATE[uid].get("step") == "link":
+        elif uid in STATE and STATE[uid].get("step") == "link":
         link = text
         
-        # 1. LẤY DỮ LIỆU AN TOÀN (Dùng .get để không bao giờ bị KeyError)
-        # Lấy giá trị tiền, nếu không có thì mặc định là 0
-        total = STATE[uid].get("total", 0)
-        platform = STATE[uid].get("platform", "N/A")
-        service = STATE[uid].get("service", "N/A")
-        qty = STATE[uid].get("qty", 0)
+        # 1. TRÍCH XUẤT DỮ LIỆU AN TOÀN (Lấy ra biến tạm TRƯỚC KHI xóa)
+        # Cách này đảm bảo dữ liệu luôn có để gửi dù sau đó bạn có xóa STATE
+        data = STATE.get(uid, {})
+        total = data.get("total", 0)
+        platform = data.get("platform", "Không xác định")
+        service = data.get("service", "Không xác định")
+        qty = data.get("qty", 0)
         
-        # 2. GỬI TIN CHO ADMIN (Chỉ gửi khi có đầy đủ dữ liệu)
-        await context.bot.send_message(
-            chat_id=ADMIN_ID,
-            text=(f"📦 ĐƠN HÀNG MỚI\n"
-                  f"📱 Nền tảng: {platform}\n"
-                  f"🛠 Dịch vụ: {service}\n"
-                  f"🔢 Số lượng: {qty}\n"
-                  f"🔗 Link: {link}\n"
-                  f"💰 TỔNG TIỀN: {int(total):,.0f} VNĐ")
-        )
+        # 2. GỬI TIN CHO ADMIN
+        try:
+            await context.bot.send_message(
+                chat_id=ADMIN_ID,
+                text=(f"📦 ĐƠN HÀNG MỚI\n"
+                      f"📱 Nền tảng: {platform}\n"
+                      f"🛠 Dịch vụ: {service}\n"
+                      f"🔢 Số lượng: {qty}\n"
+                      f"🔗 Link: {link}\n"
+                      f"💰 TỔNG TIỀN: {int(total):,.0f} VNĐ")
+            )
+        except Exception as e:
+            print(f"Lỗi gửi tin Admin: {e}")
         
         # 3. THÔNG BÁO CHO KHÁCH
         await update.message.reply_text("✅ Đơn hàng của bạn đã được gửi cho Admin!")
         
-        # 4. CHỈ XÓA DỮ LIỆU SAU KHI ĐÃ LÀM XONG MỌI VIỆC
+        # 4. CHỈ XÓA DỮ LIỆU SAU KHI XONG VIỆC
         STATE.pop(uid, None) 
-
         if not found:
-            msg = "📊 CHƯA CÓ ĐƠN HÀNG"
-
+            msg = "📊 CHƯA CÓ ĐƠN HÀNG
         await update.message.reply_text(msg)
 
     # ================= ADMIN =================
