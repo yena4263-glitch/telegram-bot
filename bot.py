@@ -157,7 +157,7 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
             await context.bot.send_message(
                 int(user),
-                f"✅ NẠP TIỀN THÀNH CÔNG\n💰 -{amount:,.0f} VNĐ"
+                f"✅NẠP TIỀN THÀNH CÔNG\n💰 +{amount:,.0f} VNĐ"
             )
 
             await query.message.edit_text("✅ ĐÃ DUYỆT NẠP TIỀN")
