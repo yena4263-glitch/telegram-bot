@@ -397,7 +397,7 @@ async def handle(update: Update, context: ContextTypes.DEFAULT_TYPE):
         # 4. CHỈ XÓA DỮ LIỆU SAU KHI XONG VIỆC
         STATE.pop(uid, None) 
         if not found:
-            msg = "📊 CHƯA CÓ ĐƠN HÀNG
+            msg = "📊 CHƯA CÓ ĐƠN HÀNG"
         await update.message.reply_text(msg)
 
     # ================= ADMIN =================
