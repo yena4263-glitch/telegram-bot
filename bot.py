@@ -1,4 +1,4 @@
-Import os
+import os
 import json
 import time
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, ReplyKeyboardMarkup
