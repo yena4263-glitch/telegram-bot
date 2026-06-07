@@ -323,7 +323,7 @@ async def handle(update: Update, context: ContextTypes.DEFAULT_TYPE):
             f"⚡ {service}\n"
             f"🔢 {qty}\n"
             f"🔗 {link}\n"
-            f"💰 f"💰 {total:,.0f} VNĐ\n"
+            f"💰 {total:,.0f} VNĐ\n"
             f"📌 CHỜ XỬ LÝ",
             reply_markup=InlineKeyboardMarkup([
                 [
