@@ -379,7 +379,7 @@ async def handle(update: Update, context: ContextTypes.DEFAULT_TYPE):
                     f"📱 {o['platform']}\n"
                     f"⚡ {o['service']}\n"
                     f"📌 {o['status']}\n"
-                    f"💰 {int(STATE[uid].get('total', 0)):,.0f} VNĐ"
+                    text=f"📦 ĐƠN HÀNG MỚI\n💰 TỔNG TIỀN: {int(STATE[uid].get('total', 0)):,.0f} VNĐ"
                     f"━━━━━━━━━━━━━━\n"
                 )
 
