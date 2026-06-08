@@ -126,7 +126,7 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
             await context.bot.send_message(
                 int(user),
-                f"🔴 ĐƠN HÀNG BỊ HỦY\n💰 Hoàn tiền: {amount} VNĐ"
+                f"🔴 ĐƠN HÀNG BỊ HỦY\n💰 Hoàn tiền: {{total:,.0f} VNĐ"} VNĐ"
             )
 
         save(data)
@@ -157,7 +157,7 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
             await context.bot.send_message(
                 int(user),
-                f"✅ NẠP TIỀN THÀNH CÔNG\n💰 +{amount} VNĐ"
+                f"✅ NẠP TIỀN THÀNH CÔNG\n💰 +{ {total:,.0f} VNĐ"} VNĐ"
             )
 
             await query.message.edit_text("✅ ĐÃ DUYỆT NẠP TIỀN")
@@ -277,38 +277,31 @@ async def handle(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text("🔗 GỬI LINK CẦN TĂNG:")
 
     # ================= LINK =================
-    elif uid in STATE and STATE[uid].get("step") == "link":
+    elif uid in STATE and STATE[uid].get("step") == "qty":
+
+    try:
+        qty = int(text)
 
         platform = STATE[uid]["platform"]
         service = STATE[uid]["service"]
-        qty = STATE[uid]["qty"]
-        link = text
 
         price = PRICES[platform][service]
         total = price * qty
 
-        if data["users"][uid]["balance"] < total:
-            await update.message.reply_text("❌ KHÔNG ĐỦ TIỀN")
-            STATE.pop(uid)
-            return
+        STATE[uid]["qty"] = qty
+        STATE[uid]["total"] = total
+        STATE[uid]["step"] = "link"
 
-        data["users"][uid]["balance"] -= total
+        await update.message.reply_text(
+            f"📦 DỊCH VỤ: {service}\n"
+            f"💵 ĐƠN GIÁ: {price:,.2f} VNĐ\n"
+            f"🔢 SỐ LƯỢNG: {qty:,}\n"
+            f"💰 TỔNG TIỀN: {total:,.0f} VNĐ\n\n"
+            f"🔗 GỬI LINK CẦN TĂNG:"
+        )
 
-        order_id = f"ORD{int(time.time())}"
-
-        data["orders"][order_id] = {
-            "id": order_id,
-            "user": uid,
-            "platform": platform,
-            "service": service,
-            "qty": qty,
-            "link": link,
-            "total": total,
-            "status": "pending"
-        }
-
-        save(data)
-        STATE.pop(uid)
+    except:
+        await update.message.reply_text("❌ VUI LÒNG NHẬP SỐ HỢP LỆ")
 
         await update.message.reply_text(
             f"✅ TẠO ĐƠN THÀNH CÔNG\n🆔 {order_id}"
