@@ -1,10 +1,20 @@
 import os
 import json
 import time
+import threading
+from flask import Flask
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, ReplyKeyboardMarkup
 from telegram.ext import Application, CommandHandler, MessageHandler, CallbackQueryHandler, filters, ContextTypes
 
-# ================= CONFIG =================
+# --- PHẦN 1: Web Server (Giữ bot sống trên Render) ---
+app = Flask(__name__)
+@app.route('/')
+def home():
+    return "Bot is running!"
+
+def run_web_server():
+    port = int(os.environ.get("PORT", 10000))
+    app.run(host='0.0.0.0', port=port)
 TOKEN = os.getenv('TOKEN')
 ADMIN_ID = 8348914397
 ADMIN = "@Vietanhenter"
