@@ -1,20 +1,10 @@
-import os
+Import os
 import json
 import time
-import threading
-from flask import Flask
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, ReplyKeyboardMarkup
 from telegram.ext import Application, CommandHandler, MessageHandler, CallbackQueryHandler, filters, ContextTypes
 
-# --- PHẦN 1: Web Server (Giữ bot sống trên Render) ---
-app = Flask(__name__)
-@app.route('/')
-def home():
-    return "Bot is running!"
-
-def run_web_server():
-    port = int(os.environ.get("PORT", 10000))
-    app.run(host='0.0.0.0', port=port)
+# ================= CONFIG =================
 TOKEN = os.getenv('TOKEN')
 ADMIN_ID = 8348914397
 ADMIN = "@Vietanhenter"
@@ -43,8 +33,8 @@ def init_user(data, uid):
 # ================= PRICE =================
 PRICES = {
     "Facebook": {
-        "Follow clone": 28,
-        "Follow sale": 26.7
+        "Follow sale": 28,
+        "Follow clone": 26.2
     },
     "TikTok": {
         "Follow clone": 47.8,
@@ -54,8 +44,9 @@ PRICES = {
     "Instagram": {
         "S1 Follow": 45,
         "Follow Tây": 33.63
-    },
+    }
 }
+
 # ================= MENU =================
 menu = ReplyKeyboardMarkup(
     [
@@ -75,7 +66,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     save(data)
 
     await update.message.reply_text(
-        "🚀 VIỆT ANH AUTO BOT XIN CHÀO \n━━━━━━━━━━━━━━",
+        "🚀 VIỆT ANH AUTO BOT XIN CHÀO \n━━━━━━━👋━━━━━━━",
         reply_markup=menu
     )
 
@@ -111,7 +102,7 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
         service = query.data.split("|")[1]
 
-        STATE.setdefault(uid, {})["service"] = service
+        STATE[uid]["service"] = service
         STATE[uid]["step"] = "qty"
 
         await query.message.reply_text("🔢 NHẬP SỐ LƯỢNG:")
@@ -166,7 +157,7 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
             await context.bot.send_message(
                 int(user),
-                f"✅NẠP TIỀN THÀNH CÔNG\n💰 +{amount:,.0f} VNĐ"
+                f"✅ NẠP TIỀN THÀNH CÔNG\n💰 +{amount} VNĐ"
             )
 
             await query.message.edit_text("✅ ĐÃ DUYỆT NẠP TIỀN")
@@ -175,7 +166,7 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
             await context.bot.send_message(
                 int(user),
-                f"❌ NẠP TIỀN BỊ HỦY\n💰{amount:,.0f} VNĐ"
+                f"❌ NẠP TIỀN BỊ HỦY\n💰 {amount} VNĐ"
             )
 
             await query.message.edit_text("❌ ĐÃ HỦY NẠP TIỀN")
@@ -196,7 +187,7 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
             f"⚠️ XÁC NHẬN CHUYỂN KHOẢN\n"
             f"🧾 CODE: {code}\n"
             f"👤 USER: {dep['user']}\n"
-            f"💰 SỐ TIỀN: {dep['{amount:,.0f}']} VNĐ"
+            f"💰 SỐ TIỀN: {dep['amount']} VNĐ"
         )
 
 # ================= TEXT =================
@@ -256,8 +247,8 @@ async def handle(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
         await update.message.reply_text(
             f"🧾 MÃ NẠP: {code}\n"
-            f"💰 {amount:,.0f} VNĐ\n"
-            f"📌 NỘI DUNG: {code} + {amount:,.0f}",
+            f"💰 {amount} VNĐ\n"
+            f"📌 NỘI DUNG: {code} + {amount}",
             reply_markup=InlineKeyboardMarkup([
                 [InlineKeyboardButton("💸 ĐÃ CHUYỂN TIỀN", callback_data=f"paid_confirm|{code}")]
             ])
@@ -268,7 +259,7 @@ async def handle(update: Update, context: ContextTypes.DEFAULT_TYPE):
             f"💰 YÊU CẦU NẠP TIỀN\n"
             f"🧾 CODE: {code}\n"
             f"👤 USER: {uid}\n"
-            f"💰 SỐ TIỀN: {amount:,.0f}",
+            f"💰 SỐ TIỀN: {amount}",
             reply_markup=InlineKeyboardMarkup([
                 [
                     InlineKeyboardButton("✅ DUYỆT", callback_data=f"dep|ok|{code}"),
@@ -277,37 +268,17 @@ async def handle(update: Update, context: ContextTypes.DEFAULT_TYPE):
             ])
         )
 
-    # =# ================= QTY =================
+    # ================= QTY =================
     elif uid in STATE and STATE[uid].get("step") == "qty":
-        try:
-            qty = int(text)
-            platform = STATE[uid].get("platform")
-            service = STATE[uid].get("service")
-            
-            # Kiểm tra giá trong biến PRICES
-            # Đảm bảo PRICES đã được khai báo ở đầu file
-            price = PRICES[platform][service]
-            total = price * qty
-            
-            # Lưu dữ liệu vào STATE để dùng cho bước sau
-            STATE[uid]["qty"] = qty
-            STATE[uid]["total"] = total
-            STATE[uid]["step"] = "link"
-            
-            await update.message.reply_text(
-                f"💰 TỔNG TIỀN: {total:,.0f} VNĐ\n"
-                f"🔗 GỬI LINK CẦN TĂNG:"
-            )
-        except Exception as e:
-            await update.message.reply_text(f"❌ Lỗi: {e}")
-            print(f"Lỗi tính tiền: {e}")
 
-# ================= LINK =================
+        STATE[uid]["qty"] = int(text)
+        STATE[uid]["step"] = "link"
+
+        await update.message.reply_text("🔗 GỬI LINK CẦN TĂNG:")
+
+    # ================= LINK =================
     elif uid in STATE and STATE[uid].get("step") == "link":
-        # Ở đây bạn dùng 'total' đã lưu từ bước QTY
-        total = STATE[uid].get("total")
-        link = text
-        # ... tiếp tục các lệnh tạo đơn ...
+
         platform = STATE[uid]["platform"]
         service = STATE[uid]["service"]
         qty = STATE[uid]["qty"]
@@ -352,7 +323,7 @@ async def handle(update: Update, context: ContextTypes.DEFAULT_TYPE):
             f"⚡ {service}\n"
             f"🔢 {qty}\n"
             f"🔗 {link}\n"
-            f"💰 {total:,.0f} VNĐ\n"
+            f"💰 {total} VNĐ\n"
             f"📌 CHỜ XỬ LÝ",
             reply_markup=InlineKeyboardMarkup([
                 [
@@ -369,43 +340,30 @@ async def handle(update: Update, context: ContextTypes.DEFAULT_TYPE):
         )
 
     # ================= ACCOUNT =================
-        # ================= ACCOUNT =================
     elif text == "👤 Tài khoản":
-        # Ép kiểu về số nguyên và dùng định dạng có dấu phẩy cho dễ đọc
-        balance = int(data['users'][uid]['balance'])
-        await update.message.reply_text(f"💰 SỐ DƯ: {balance:,} VNĐ")
+        await update.message.reply_text(f"💰 SỐ DƯ: {data['users'][uid]['balance']} VNĐ")
 
     # ================= ORDERS =================
-    elif (uid in STATE and STATE[uid].get("step") == "link"):
-        # 1. TRÍCH XUẤT DỮ LIỆU AN TOÀN (Lấy ra biến tạm TRƯỚC KHI xóa)
-        # Cách này đảm bảo dữ liệu luôn có để gửi dù sau đó bạn có xóa STATE
-        data = STATE.get(uid, {})
-        total = data.get("total", 0)
-        platform = data.get("platform", "Không xác định")
-        service = data.get("service", "Không xác định")
-        qty = data.get("qty", 0)
-        
-        # 2. GỬI TIN CHO ADMIN
-        try:
-            await context.bot.send_message(
-                chat_id=ADMIN_ID,
-                text=(f"📦 ĐƠN HÀNG MỚI\n"
-                      f"📱 Nền tảng: {platform}\n"
-                      f"🛠 Dịch vụ: {service}\n"
-                      f"🔢 Số lượng: {qty}\n"
-                      f"🔗 Link: {link}\n"
-                      f"💰 TỔNG TIỀN: {int(total):,.0f} VNĐ")
-            )
-        except Exception as e:
-            print(f"Lỗi gửi tin Admin: {e}")
-        
-        # 3. THÔNG BÁO CHO KHÁCH
-        await update.message.reply_text("✅ Đơn hàng của bạn đã được gửi cho Admin!")
-        
-        # 4. CHỈ XÓA DỮ LIỆU SAU KHI XONG VIỆC
-        STATE.pop(uid, None) 
+    elif text == "📊 Đơn hàng":
+
+        msg = "📊 ĐƠN HÀNG CỦA BẠN\n━━━━━━━━━━━━━━\n\n"
+        found = False
+
+        for o in data["orders"].values():
+            if o["user"] == uid:
+                found = True
+                msg += (
+                    f"🆔 {o['id']}\n"
+                    f"📱 {o['platform']}\n"
+                    f"⚡ {o['service']}\n"
+                    f"📌 {o['status']}\n"
+                    f"💰 {o['total']} VNĐ\n"
+                    f"━━━━━━━━━━━━━━\n"
+                )
+
         if not found:
             msg = "📊 CHƯA CÓ ĐƠN HÀNG"
+
         await update.message.reply_text(msg)
 
     # ================= ADMIN =================
@@ -421,6 +379,7 @@ def main():
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle))
 
     print("BOT RUNNING...")
-    
-    # Sử dụng drop_pending_updates=True trực tiếp trong hàm run_polling
-    app.run_polling(drop_pending_updates=True)
+    app.run_polling()
+
+if __name__ == "__main__":
+    main()
