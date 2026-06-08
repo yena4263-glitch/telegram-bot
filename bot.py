@@ -103,7 +103,8 @@ async def handle(update: Update, context: ContextTypes.DEFAULT_TYPE):
             "--------------------------\n"
             "📌 Vui lòng nhập số tiền bạn đã chuyển:"
         )
-        await update.message.reply_text(khung("💰 NẠP TIỀN", msg))
+        # Sửa chỗ này, thêm "msg" vào trong hàm khung
+        await update.message.reply_text(khung("💰 NẠP TIỀN", msg)) 
 
     elif uid in STATE and STATE[uid].get("step") == "deposit_amount":
         try:
