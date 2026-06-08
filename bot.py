@@ -5,7 +5,7 @@ from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, ReplyKe
 from telegram.ext import Application, CommandHandler, MessageHandler, CallbackQueryHandler, filters, ContextTypes
 
 # ================= CONFIG =================
-TOKEN = os.getenv('TOKEN')
+TOKEN = " 8826457177:AAEdk9dN3PjDYQd-_5smTs-cH8ChqwSjTEw"
 ADMIN_ID = 8348914397 
 ADMIN_CONTACT = "@Vietanhenter" 
 DATA_FILE = "data.json"
