@@ -119,25 +119,27 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         old = order["status"]
         order["status"] = status
 
-        if status == "cancel" and old != "cancel":
-            user = order["user"]
-            amount = order["total"]
-            data["users"][user]["balance"] += amount
+            # ... các đoạn code phía trên ...
 
-            await context.bot.send_message(
-                int(user)
-                    elif uid in STATE and STATE[uid].get("step") == "qty":
+    # XỬ LÝ TRẠNG THÁI NHẬP SỐ LƯỢNG
+    elif uid in STATE and STATE[uid].get("step") == "qty":
         try:
             qty = int(text)
-            platform = STATE[uid]["platform"]
-            service = STATE[uid]["service"]
-            price = PRICES[platform][service]
-            total = float(price * qty)
+            # Tính toán logic ở đây
+            # ... (đoạn tính tiền của bạn) ...
             
-            # Gửi tin nhắn cho khách
-            await update.message.reply_text(
-                f"📦 DỊCH VỤ: {service}\n"
-                f"💵 ĐƠN GIÁ: {price:,.0f} VNĐ\n"
+            await update.message.reply_text(f"✅ Đã nhận số lượng: {qty}")
+            STATE[uid]["step"] = "link"
+        except:
+            await update.message.reply_text("❌ Vui lòng nhập số hợp lệ!")
+
+    # XỬ LÝ TRẠNG THÁI NHẬP LINK (đảm bảo elif này nằm dưới và tách biệt với cái trên)
+    elif uid in STATE and STATE[uid].get("step") == "link":
+        # ... (đoạn xử lý link) ...
+        STATE.pop(uid) # Xóa trạng thái sau khi xong
+
+    # ... các đoạn code còn lại ...
+
                 f"🔢 SỐ LƯỢNG: {qty:,}\n"
                 f"💰 TỔNG TIỀN: {total:,.0f} VNĐ\n\n"
                 f"🔗 GỬI LINK CẦN TĂNG:"
