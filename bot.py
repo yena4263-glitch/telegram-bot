@@ -125,9 +125,29 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
             data["users"][user]["balance"] += amount
 
             await context.bot.send_message(
-                int(user),
-                f"🔴 ĐƠN HÀNG BỊ HỦY\n💰 Hoàn tiền: {{total:,.0f} VNĐ"} VNĐ"
+                int(user)
+                    elif uid in STATE and STATE[uid].get("step") == "qty":
+        try:
+            qty = int(text)
+            platform = STATE[uid]["platform"]
+            service = STATE[uid]["service"]
+            price = PRICES[platform][service]
+            total = float(price * qty)
+            
+            # Gửi tin nhắn cho khách
+            await update.message.reply_text(
+                f"📦 DỊCH VỤ: {service}\n"
+                f"💵 ĐƠN GIÁ: {price:,.0f} VNĐ\n"
+                f"🔢 SỐ LƯỢNG: {qty:,}\n"
+                f"💰 TỔNG TIỀN: {total:,.0f} VNĐ\n\n"
+                f"🔗 GỬI LINK CẦN TĂNG:"
             )
+            
+            # Lưu vào STATE
+            STATE[uid].update({"qty": qty, "total": total, "step": "link"})
+            
+        except Exception:
+            await update.message.reply_text("❌ VUI LÒNG NHẬP SỐ LƯỢNG HỢP LỆ")
 
         save(data)
 
