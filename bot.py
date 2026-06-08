@@ -227,39 +227,29 @@ async def handle(update: Update, context: ContextTypes.DEFAULT_TYPE):
         )
 
     # ================= DEPOSIT INPUT =================
-    elif uid in STATE and STATE[uid].get("step") == "deposit_amount":
-
+        elif uid in STATE and STATE[uid].get("step") == "deposit_amount":
         try:
             amount = float(text)
-        except:
-            await update.message.reply_text("❌ VUI LÒNG NHẬP SỐ")
-            return
+            if amount < 50000:
+                await update.message.reply_text("❌ TỐI THIỂU 50.000 VNĐ")
+                return
+            
+            code = f"DEP{int(time.time())}"
+            DEPOSITS[code] = {"user": uid, "amount": amount}
+            STATE.pop(uid)
 
-        if amount < 50000:
-            await update.message.reply_text("❌ TỐI THIỂU 50.000 VNĐ")
-            return
-
-        code = f"DEP{int(time.time())}"
-
-        DEPOSITS[code] = {"user": uid, "amount": amount}
-
-        STATE.pop(uid)
-
-        await update.message.reply_text(
-            f"🧾 MÃ NẠP: {code}\n"
-            f"💰 {amount} VNĐ\n"
-            f"📌 NỘI DUNG: {code} + {amount}",
-            reply_markup=InlineKeyboardMarkup([
-                [InlineKeyboardButton("💸 ĐÃ CHUYỂN TIỀN", callback_data=f"paid_confirm|{code}")]
-            ])
-        )
-
-        await context.bot.send_message(
+            # ĐỊNH DẠNG Ở ĐÂY: :,.0f sẽ biến 50000.0 thành 50,000
+            await update.message.reply_text(
+                f"🧾 MÃ NẠP: {code}\n"
+                f"💰 {amount:,.0f} VNĐ\n"
+                f"📌 NỘI DUNG: {code} + {amount:,.0f}"
+            )
+                await context.bot.send_message(
             ADMIN_ID,
             f"💰 YÊU CẦU NẠP TIỀN\n"
             f"🧾 CODE: {code}\n"
             f"👤 USER: {uid}\n"
-            f"💰 SỐ TIỀN: {amount}",
+            f"💰 SỐ TIỀN: {amount:,.0f} VNĐ", # Đã thêm :,.0f
             reply_markup=InlineKeyboardMarkup([
                 [
                     InlineKeyboardButton("✅ DUYỆT", callback_data=f"dep|ok|{code}"),
@@ -278,34 +268,28 @@ async def handle(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     # ================= LINK =================
         # ================= BƯỚC 1: NHẬP SỐ LƯỢNG (QTY) =================
-    elif uid in STATE and STATE[uid].get("step") == "qty":
+            elif uid in STATE and STATE[uid].get("step") == "qty":
         try:
             qty = int(text)
             platform = STATE[uid]["platform"]
             service = STATE[uid]["service"]
-            
-            # Tính tiền
             price = PRICES[platform][service]
-            total = price * qty
+            total = float(price * qty)
             
-            # Lưu thông tin vào STATE để dùng cho bước tiếp theo
-            STATE[uid].update({
-                "qty": qty,
-                "total": total,
-                "step": "link"
-            })
-            
-            # Phản hồi cho khách
+            # Gửi tin nhắn cho khách
             await update.message.reply_text(
                 f"📦 DỊCH VỤ: {service}\n"
-                f"💵 ĐƠN GIÁ: {price:,.2f} VNĐ\n"
+                f"💵 ĐƠN GIÁ: {price:,.0f} VNĐ\n"
                 f"🔢 SỐ LƯỢNG: {qty:,}\n"
                 f"💰 TỔNG TIỀN: {total:,.0f} VNĐ\n\n"
                 f"🔗 GỬI LINK CẦN TĂNG:"
             )
-        except Exception as e:
+            
+            # Lưu vào STATE
+            STATE[uid].update({"qty": qty, "total": total, "step": "link"})
+            
+        except Exception:
             await update.message.reply_text("❌ VUI LÒNG NHẬP SỐ LƯỢNG HỢP LỆ")
-
     # ================= BƯỚC 2: NHẬP LINK & TẠO ĐƠN =================
     elif uid in STATE and STATE[uid].get("step") == "link":
         total = STATE[uid]["total"]
