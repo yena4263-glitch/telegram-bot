@@ -277,28 +277,64 @@ async def handle(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text("🔗 GỬI LINK CẦN TĂNG:")
 
     # ================= LINK =================
+        # ================= BƯỚC 1: NHẬP SỐ LƯỢNG (QTY) =================
     elif uid in STATE and STATE[uid].get("step") == "qty":
+        try:
+            qty = int(text)
+            platform = STATE[uid]["platform"]
+            service = STATE[uid]["service"]
+            
+            # Tính tiền
+            price = PRICES[platform][service]
+            total = price * qty
+            
+            # Lưu thông tin vào STATE để dùng cho bước tiếp theo
+            STATE[uid].update({
+                "qty": qty,
+                "total": total,
+                "step": "link"
+            })
+            
+            # Phản hồi cho khách
+            await update.message.reply_text(
+                f"📦 DỊCH VỤ: {service}\n"
+                f"💵 ĐƠN GIÁ: {price:,.2f} VNĐ\n"
+                f"🔢 SỐ LƯỢNG: {qty:,}\n"
+                f"💰 TỔNG TIỀN: {total:,.0f} VNĐ\n\n"
+                f"🔗 GỬI LINK CẦN TĂNG:"
+            )
+        except Exception as e:
+            await update.message.reply_text("❌ VUI LÒNG NHẬP SỐ LƯỢNG HỢP LỆ")
 
-    try:
-        qty = int(text)
+    # ================= BƯỚC 2: NHẬP LINK & TẠO ĐƠN =================
+    elif uid in STATE and STATE[uid].get("step") == "link":
+        total = STATE[uid]["total"]
+        link = text
+        
+        # Kiểm tra tiền
+        if data["users"][uid]["balance"] < total:
+            await update.message.reply_text("❌ TÀI KHOẢN KHÔNG ĐỦ TIỀN!")
+            STATE.pop(uid)
+            return
 
-        platform = STATE[uid]["platform"]
-        service = STATE[uid]["service"]
-
-        price = PRICES[platform][service]
-        total = price * qty
-
-        STATE[uid]["qty"] = qty
-        STATE[uid]["total"] = total
-        STATE[uid]["step"] = "link"
-
-        await update.message.reply_text(
-            f"📦 DỊCH VỤ: {service}\n"
-            f"💵 ĐƠN GIÁ: {price:,.2f} VNĐ\n"
-            f"🔢 SỐ LƯỢNG: {qty:,}\n"
-            f"💰 TỔNG TIỀN: {total:,.0f} VNĐ\n\n"
-            f"🔗 GỬI LINK CẦN TĂNG:"
-        )
+        # Trừ tiền và lưu đơn
+        data["users"][uid]["balance"] -= total
+        order_id = f"ORD{int(time.time())}"
+        
+        data["orders"][order_id] = {
+            "id": order_id,
+            "user": uid,
+            "platform": STATE[uid]["platform"],
+            "service": STATE[uid]["service"],
+            "qty": STATE[uid]["qty"],
+            "link": link,
+            "total": total,
+            "status": "pending"
+        }
+        save(data)
+        STATE.pop(uid)
+        
+        await update.message.reply_text(f"✅ TẠO ĐƠN THÀNH CÔNG\n🆔 Mã đơn: {order_id}")
 
     except:
         await update.message.reply_text("❌ VUI LÒNG NHẬP SỐ HỢP LỆ")
