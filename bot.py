@@ -72,18 +72,20 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 save(data)
                 await context.bot.send_message(int(dep["user"]), f"✅ Nạp {dep['amount']:,.0f}đ thành công!")
                 await query.message.edit_text("✅ Đã duyệt")
-            else:
-                await query.message.edit_text("❌ Đã hủy")
+
+    elif query.data.startswith("notify_admin|"):
+        code = query.data.split("|")[1]
+        await query.message.edit_text(f"⏳ Đã gửi thông báo cho Admin xác nhận đơn: {code}")
+        await context.bot.send_message(ADMIN_ID, f"🔔 User {uid} báo đã chuyển khoản đơn: {code}")
 
 async def handle(update: Update, context: ContextTypes.DEFAULT_TYPE):
     uid = str(update.message.chat_id)
     text = update.message.text
     data = load()
-    init_user(data, uid)
     
     if text == "📦 Dịch vụ":
         STATE[uid] = {"step": "platform"}
-        await update.message.reply_text("📦 CHỌN NỀN TẢNG:", reply_markup=InlineKeyboardMarkup([
+        await update.message.reply_text("📦 Chọn nền tảng:", reply_markup=InlineKeyboardMarkup([
             [InlineKeyboardButton("📘 Facebook", callback_data="fb")],
             [InlineKeyboardButton("🎵 TikTok", callback_data="tt")],
             [InlineKeyboardButton("📸 Instagram", callback_data="ig")]
@@ -91,34 +93,35 @@ async def handle(update: Update, context: ContextTypes.DEFAULT_TYPE):
     elif text == "💰 Nạp tiền":
         STATE[uid] = {"step": "deposit"}
         await update.message.reply_text(
-            "💰 NẠP TIỀN\n━━━━━━━━━━━━━━\n"
-            "🏦 ACB: 26084821\n"
-            "👤 DINH HOANG VIET ANH\n"
-            "📌 GHI CHÚ: MÃ NẠP + SỐ TIỀN\n"
-            "⚠️ NHẬP SỐ TIỀN BẠN MUỐN NẠP (VÍ DỤ: 50000):"
+            "💰 NẠP TIỀN\n🏦 ACB: 26084821\n👤 DINH HOANG VIET ANH\n"
+            "⚠️ NHẬP SỐ TIỀN BẠN MUỐN NẠP (tối thiểu 50.000):"
         )
     elif text == "👤 Tài khoản":
-        await update.message.reply_text(f"👤 SỐ DƯ CỦA BẠN: {data['users'][uid]['balance']:,.0f} VNĐ")
+        balance = data["users"].get(uid, {"balance": 0})["balance"]
+        await update.message.reply_text(f"👤 SỐ DƯ: {balance:,.0f} VNĐ")
     elif text == "📊 Đơn hàng":
         orders = [o for o in data["orders"].values() if o["user"] == uid]
-        if not orders: await update.message.reply_text("📊 BẠN CHƯA CÓ ĐƠN HÀNG NÀO.")
+        if not orders: await update.message.reply_text("📊 BẠN CHƯA CÓ ĐƠN HÀNG.")
         else:
-            msg = "📋 5 ĐƠN HÀNG GẦN NHẤT:\n"
-            for o in orders[-5:]: msg += f"🆔 {o['id']} | Status: {o['status']} | {o['total']:,.0f}đ\n"
+            msg = "📋 5 ĐƠN GẦN NHẤT:\n"
+            for o in orders[-5:]: msg += f"🆔 {o['id']} | {o['status']} | {o['total']:,.0f}đ\n"
             await update.message.reply_text(msg)
     elif text == "☎ Liên hệ admin":
-        await update.message.reply_text("☎ LIÊN HỆ ADMIN: @Vietanhenter")
+        await update.message.reply_text("☎ ADMIN: @Vietanhenter")
     elif uid in STATE:
         step = STATE[uid].get("step")
         if step == "deposit":
             try:
                 amt = float(text)
+                if amt < 50000: raise ValueError
                 code = f"DEP{int(time.time())}"
                 DEPOSITS[code] = {"user": uid, "amount": amt}
-                await update.message.reply_text(f"✅ Gửi cho Admin nội dung: {code} + {amt:,.0f}")
+                await update.message.reply_text(
+                    f"✅ MÃ NẠP: `{code}`\nSố tiền: {amt:,.0f}đ\nNhấn nút bên dưới sau khi đã chuyển khoản:",
+                    parse_mode='Markdown', reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("✅ Đã chuyển khoản", callback_data=f"notify_admin|{code}")]]))
                 await context.bot.send_message(ADMIN_ID, f"💰 Yêu cầu nạp: {amt:,.0f}đ\nUser: {uid}\nCode: {code}", reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("✅ Duyệt", callback_data=f"dep|ok|{code}")]]))
                 STATE.pop(uid)
-            except: await update.message.reply_text("❌ Nhập số tiền hợp lệ!")
+            except: await update.message.reply_text("❌ Nhập số tiền hợp lệ (>= 50.000)!")
         elif step == "qty":
             try:
                 qty = int(text)
