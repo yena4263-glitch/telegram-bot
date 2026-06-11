@@ -13,14 +13,12 @@ DATA_FILE = "data.json"
 STATE = {}
 DEPOSITS = {}
 
-# --- DỮ LIỆU DỊCH VỤ ---
 PRICES = {
     "Facebook": {"Follow clone": 28, "Follow sale": 26.7},
     "TikTok": {"Follow clone": 47.8, "S4 Follow": 48.9, "S6 Follow": 34.9},
     "Instagram": {"S1 Follow": 45, "Follow Tây": 33.63},
 }
 
-# --- HÀM HỖ TRỢ ---
 def load():
     if not os.path.exists(DATA_FILE): return {"users": {}, "orders": {}}
     with open(DATA_FILE, "r") as f: return json.load(f)
@@ -33,12 +31,10 @@ def init_user(data, uid):
         data["users"][uid] = {"balance": 0}
         save(data)
 
-# --- WEB SERVER ---
 app = Flask(__name__)
 @app.route('/')
 def home(): return "Bot is running!"
 
-# --- XỬ LÝ TELEGRAM ---
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     uid = str(update.message.chat_id)
     data = load()
@@ -73,6 +69,14 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 await context.bot.send_message(int(dep["user"]), f"✅ Nạp {dep['amount']:,.0f}đ thành công!")
                 await query.message.edit_text("✅ Đã duyệt")
 
+    elif query.data.startswith("stt|"):
+        _, status, oid = query.data.split("|")
+        if oid in data["orders"]:
+            data["orders"][oid]["status"] = status
+            save(data)
+            await query.message.edit_text(f"📌 Đơn {oid} đã: {status.upper()}")
+            await context.bot.send_message(data["orders"][oid]["user"], f"📌 Đơn hàng {oid} của bạn đã: {status.upper()}")
+
     elif query.data.startswith("notify_admin|"):
         code = query.data.split("|")[1]
         await query.message.edit_text(f"⏳ Đã gửi thông báo cho Admin xác nhận đơn: {code}")
@@ -92,10 +96,7 @@ async def handle(update: Update, context: ContextTypes.DEFAULT_TYPE):
         ]))
     elif text == "💰 Nạp tiền":
         STATE[uid] = {"step": "deposit"}
-        await update.message.reply_text(
-            "💰 NẠP TIỀN\n🏦 ACB: 26084821\n👤 DINH HOANG VIET ANH\n"
-            "⚠️ NHẬP SỐ TIỀN BẠN MUỐN NẠP (tối thiểu 50.000):"
-        )
+        await update.message.reply_text("💰 NẠP TIỀN\n🏦 ACB: 26084821\n👤 DINH HOANG VIET ANH\n⚠️ NHẬP SỐ TIỀN (tối thiểu 50.000):")
     elif text == "👤 Tài khoản":
         balance = data["users"].get(uid, {"balance": 0})["balance"]
         await update.message.reply_text(f"👤 SỐ DƯ: {balance:,.0f} VNĐ")
@@ -103,8 +104,10 @@ async def handle(update: Update, context: ContextTypes.DEFAULT_TYPE):
         orders = [o for o in data["orders"].values() if o["user"] == uid]
         if not orders: await update.message.reply_text("📊 BẠN CHƯA CÓ ĐƠN HÀNG.")
         else:
-            msg = "📋 5 ĐƠN GẦN NHẤT:\n"
-            for o in orders[-5:]: msg += f"🆔 {o['id']} | {o['status']} | {o['total']:,.0f}đ\n"
+            msg = "📋 CHI TIẾT 5 ĐƠN GẦN NHẤT:\n━━━━━━━━━━━━━━\n"
+            for o in orders[-5:]:
+                msg += (f"🆔 {o['id']}\n🔹 Dịch vụ: {o['platform']} - {o['service']}\n"
+                        f"📌 Trạng thái: {o['status'].upper()}\n💰 Số tiền: {o['total']:,.0f}đ\n━━━━━━━━━━━━━━\n")
             await update.message.reply_text(msg)
     elif text == "☎ Liên hệ admin":
         await update.message.reply_text("☎ ADMIN: @Vietanhenter")
@@ -116,9 +119,7 @@ async def handle(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 if amt < 50000: raise ValueError
                 code = f"DEP{int(time.time())}"
                 DEPOSITS[code] = {"user": uid, "amount": amt}
-                await update.message.reply_text(
-                    f"✅ MÃ NẠP: `{code}`\nSố tiền: {amt:,.0f}đ\nNhấn nút bên dưới sau khi đã chuyển khoản:",
-                    parse_mode='Markdown', reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("✅ Đã chuyển khoản", callback_data=f"notify_admin|{code}")]]))
+                await update.message.reply_text(f"✅ MÃ NẠP: `{code}`\nSố tiền: {amt:,.0f}đ\nNhấn nút sau khi đã CK:", parse_mode='Markdown', reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("✅ Đã chuyển khoản", callback_data=f"notify_admin|{code}")]]))
                 await context.bot.send_message(ADMIN_ID, f"💰 Yêu cầu nạp: {amt:,.0f}đ\nUser: {uid}\nCode: {code}", reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("✅ Duyệt", callback_data=f"dep|ok|{code}")]]))
                 STATE.pop(uid)
             except: await update.message.reply_text("❌ Nhập số tiền hợp lệ (>= 50.000)!")
@@ -137,11 +138,11 @@ async def handle(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 oid = f"ORD{int(time.time())}"
                 data["orders"][oid] = {"id": oid, "user": uid, "platform": p, "service": s, "qty": q, "link": text, "total": total, "status": "pending"}
                 save(data)
-                await update.message.reply_text(f"✅ Đơn {oid} đã tạo!")
+                await context.bot.send_message(ADMIN_ID, f"🔔 ĐƠN MỚI ID: {oid}\nUser: {uid}\nDịch vụ: {p} - {s}\nSố lượng: {q}\nLink: {text}\nTổng: {total:,.0f}đ", reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("✅ Duyệt", callback_data=f"stt|done|{oid}"), InlineKeyboardButton("❌ Hủy", callback_data=f"stt|cancel|{oid}")]]))
+                await update.message.reply_text(f"✅ Đơn {oid} đã tạo! Vui lòng chờ Admin duyệt.")
             else: await update.message.reply_text("❌ Không đủ tiền!")
             STATE.pop(uid)
 
-# --- MAIN ---
 if __name__ == "__main__":
     threading.Thread(target=lambda: app.run(host='0.0.0.0', port=10000)).start()
     bot = Application.builder().token(TOKEN).build()
